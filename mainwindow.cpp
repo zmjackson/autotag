@@ -1,14 +1,7 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "window.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow()
 {
-    ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
+    setCentralWidget(new Window(this));
 }
