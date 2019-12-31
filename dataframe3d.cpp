@@ -15,31 +15,19 @@ DataFrame3D::DataFrame3D(const std::string &filePath)
     // Todo: Assertions?
     file.read(fileStream);
     //printPlyInfo(file);
-    std::vector<float> positions(positionData->count * 3);
+    numDataPoints = positionData->count;
+
+    positions.resize(3 * positionData->count);
     std::memcpy(positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
-    std::vector<unsigned char> intensities(intensityData->count);
+    intensities.resize(intensityData->count);
     std::memcpy(intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
-    std::vector<unsigned short> laserNumbers(laserNumberData->count);
+    laserNumbers.resize(laserNumberData->count);
     std::memcpy(laserNumbers.data(), laserNumberData->buffer.get(), laserNumberData->buffer.size_bytes());
 
     auto max = std::max_element(positions.begin(), positions.end());
     float max_val = *max;
     for (auto& it : positions)
-        it /= max_val;
-    vertices = positions;
-
-    std::vector<DataPoint> data(intensities.size());
-    int posi = 0;
-    int i = 0;
-    for (auto &currDataPoint : data) {
-        currDataPoint = { QVector3D(positions[posi], positions[posi + 1], positions[posi +2 ]),
-                          intensities[i],
-                          laserNumbers[i] };
-        posi += 3;
-        ++i;
-     }
-
-    pointCloud = data;
+        it /= max_val;    
 }
 
 std::vector<char> DataFrame3D::loadBinaryFile(const std::string &filePath)
@@ -108,4 +96,19 @@ std::vector<DataPoint> DataFrame3D::parsePlyFile(const std::vector<char> &binary
      }
 
     return data;
+}
+
+std::string DataFrame3D::id() const
+{
+    return id;
+}
+
+unsigned long DataFrame3D::timeStamp() const
+{
+    return timeStamp;
+}
+
+int numDataPoints() const
+{
+    return numDataPoints;
 }

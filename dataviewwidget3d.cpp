@@ -88,7 +88,7 @@ void DataViewWidget3D::initializeGL()
 
     vbo.create();
     vbo.bind();
-    vbo.allocate(currentDataFrame.vertices.data(), currentDataFrame.vertices.size() * sizeof(float));
+    vbo.allocate(currentDataFrame.positions().data(), currentDataFrame.positions().size() * sizeof(float));
 
     setupVertexAttribs();
 
@@ -124,7 +124,7 @@ void DataViewWidget3D::paintGL()
     QMatrix3x3 normalMatrix = world.normalMatrix();
     shaderProgram->setUniformValue(normalMatrixLoc, normalMatrix);
 
-    glDrawArrays(GL_POINTS, 0, currentDataFrame.vertices.size() / 3);
+    glDrawArrays(GL_POINTS, 0, currentDataFrame.numDataPoints());
 
     shaderProgram->release();
 }

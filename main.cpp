@@ -1,6 +1,7 @@
 #include <QApplication>
 
 #include "mainwindow.h"
+#include "datatimeline.h"
 #include "dataframe3d.h"
 #include "dataviewwidget3d.h"
 #include "tinyply.h"
@@ -9,7 +10,7 @@
 #include <iostream>
 
 int main(int argc, char *argv[])
-{
+{    
     QApplication app(argc, argv);
     MainWindow window;
     window.resize(window.sizeHint());

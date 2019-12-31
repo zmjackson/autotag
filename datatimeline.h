@@ -8,11 +8,20 @@
 class DataTimeline
 {
 public:
-    DataTimeline();
-    std::unique_ptr<const DataFrame3D> currentFrame();
+    DataTimeline();    
+    const DataFrame3D &currentFrame() const;
+    const DataFrame3D &frameWithId(const std::string &id) const;
+    const DataFrame3D &frameAtTime(const unsigned long timeStamp) const;
+    void setCurrentFrame(const std::string &id) const;
+    void setCurrentFrame(const unsigned long timeStamp) const;
+    void nextFrame();
+    void prevFrame();
+    void numFrames();
 
 private:
-    std::map<int, DataFrame3D> dataFrames;
+    unsigned long currentTimeStamp;
+    std::map<std::string, unsigned long> timeStamps;
+    std::map<unsigned long, DataFrame3D> dataFrames;
 };
 
 #endif // DATATIMELINE_H

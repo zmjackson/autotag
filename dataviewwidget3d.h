@@ -29,6 +29,7 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
+    void changeCurrentFrame(const DataFrame3D &frame);
     //void cleanup();
 
 signals:
