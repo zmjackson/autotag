@@ -1,10 +1,15 @@
 #include "dataframe3d.h"
+#include <QString>
 
-DataFrame3D::DataFrame3D(const std::string &filePath)
+DataFrame3D::DataFrame3D()
+    : m_timeStamp(0),
+      m_numDataPoints(0) {}
+
+DataFrame3D::DataFrame3D(const QString &filePath)
 {
     //std::vector<char> file = loadBinaryFile(filePath);
     //pointCloud = parsePlyFile(file);
-    std::ifstream fileStream(filePath, std::ios::binary);
+    std::ifstream fileStream(filePath.toStdString(), std::ios::binary);
     tinyply::PlyFile file;
     file.parse_header(fileStream);
 
@@ -15,22 +20,22 @@ DataFrame3D::DataFrame3D(const std::string &filePath)
     // Todo: Assertions?
     file.read(fileStream);
     //printPlyInfo(file);
-    numDataPoints = positionData->count;
+    m_numDataPoints = positionData->count;
 
-    positions.resize(3 * positionData->count);
-    std::memcpy(positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
-    intensities.resize(intensityData->count);
-    std::memcpy(intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
-    laserNumbers.resize(laserNumberData->count);
-    std::memcpy(laserNumbers.data(), laserNumberData->buffer.get(), laserNumberData->buffer.size_bytes());
+    m_positions.resize(3 * positionData->count);
+    std::memcpy(m_positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
+    m_intensities.resize(intensityData->count);
+    std::memcpy(m_intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
+    m_laserNumbers.resize(laserNumberData->count);
+    std::memcpy(m_laserNumbers.data(), laserNumberData->buffer.get(), laserNumberData->buffer.size_bytes());
 
-    auto max = std::max_element(positions.begin(), positions.end());
+    auto max = std::max_element(m_positions.begin(), m_positions.end());
     float max_val = *max;
-    for (auto& it : positions)
+    for (auto& it : m_positions)
         it /= max_val;    
 }
 
-std::vector<char> DataFrame3D::loadBinaryFile(const std::string &filePath)
+/*std::vector<char> DataFrame3D::loadBinaryFile(const std::string &filePath)
 {
     std::ifstream input(filePath, std::ios::binary | std::ios::ate);
     // Todo: error handling
@@ -58,7 +63,7 @@ std::vector<DataPoint> DataFrame3D::parsePlyFile(const std::vector<char> &binary
     std::vector<float> test_positions(position_data->count * 3);
     std::memcpy(test_positions.data(), position_data->buffer.get(), position_data->buffer.size_bytes());
 
-/*************************************************************************************************************************/
+
 
     tinyply::PlyFile file;
     CharVecBufferWrap fileBuffer(binaryData);
@@ -82,8 +87,6 @@ std::vector<DataPoint> DataFrame3D::parsePlyFile(const std::vector<char> &binary
 
     for (const float& position : positions) std::cout << position << " ";
 
-    vertices = positions;
-
     std::vector<DataPoint> data(intensities.size());
     int posi = 0;
     int i = 0;
@@ -96,19 +99,30 @@ std::vector<DataPoint> DataFrame3D::parsePlyFile(const std::vector<char> &binary
      }
 
     return data;
-}
-
-std::string DataFrame3D::id() const
-{
-    return id;
-}
+}*/
 
 unsigned long DataFrame3D::timeStamp() const
 {
-    return timeStamp;
+    return m_timeStamp;
 }
 
-int numDataPoints() const
+int DataFrame3D::numDataPoints() const
 {
-    return numDataPoints;
+    return m_numDataPoints;
 }
+
+const QVector<float> &DataFrame3D::positions() const
+{
+    return m_positions;
+}
+
+const QVector<unsigned char> &DataFrame3D::intensities() const
+{
+    return m_intensities;
+}
+
+const QVector<unsigned short> &DataFrame3D::laserNumbers() const
+{
+    return m_laserNumbers;
+}
+

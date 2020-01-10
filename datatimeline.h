@@ -1,27 +1,32 @@
 #ifndef DATATIMELINE_H
 #define DATATIMELINE_H
 
-#include <map>
-
+#include <vector>
 #include "dataframe3d.h"
+
+QT_BEGIN_NAMESPACE
+class QStringList;
+QT_END_NAMESPACE
 
 class DataTimeline
 {
 public:
-    DataTimeline();    
+    DataTimeline();
+    DataTimeline(const QStringList &fileList);
     const DataFrame3D &currentFrame() const;
-    const DataFrame3D &frameWithId(const std::string &id) const;
-    const DataFrame3D &frameAtTime(const unsigned long timeStamp) const;
-    void setCurrentFrame(const std::string &id) const;
-    void setCurrentFrame(const unsigned long timeStamp) const;
+    const DataFrame3D &frameAt(const int timeStamp) const;
+    void addFrame(DataFrame3D &&frame);
+    void setCurrentFrame(const int timeStamp);
     void nextFrame();
     void prevFrame();
-    void numFrames();
+    int numFrames() const;
+    void reset(const QStringList &fileList);
+    int maxDataPoints() const;
 
-private:
-    unsigned long currentTimeStamp;
-    std::map<std::string, unsigned long> timeStamps;
-    std::map<unsigned long, DataFrame3D> dataFrames;
+private:    
+    std::vector<DataFrame3D> m_dataFrames;
+    int m_currentTimeStamp;
+    int m_maxDataPoints;
 };
 
 #endif // DATATIMELINE_H

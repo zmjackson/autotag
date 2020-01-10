@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <QVector3D>
+#include <QVector>
 
 #include <algorithm>
 
@@ -14,31 +15,33 @@
 #include "datapoint.h"
 #include "utilities.cpp"
 
-namespace autotag {
-class DataFrame3D;
-}
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 class DataFrame3D
 {
 public:
-    DataFrame3D(const std::string &filePath);    
-    std::string id() const;
+    DataFrame3D();
+    DataFrame3D(const QString &filePath);
     unsigned long timeStamp() const;
-    const std::vector &positions() const;
-    const std::vector &intensities() const;
-    const std::vector &laserNumbers() const;
     int numDataPoints() const;
+    const QVector<float> &positions() const;
+    const QVector<unsigned char> &intensities() const;
+    const QVector<unsigned short> &laserNumbers() const;
+    /*size_t positionsSizeBytes() const;
+    size_t laserNumbersSizeBytes() const;
+    size_t intensitiesSizeBytes() const;*/
 
 private:          
     std::vector<char> loadBinaryFile(const std::string &filePath);
     std::vector<DataPoint> parsePlyFile(const std::vector<char> &binaryData);
 
-    std::string id;
-    unsigned long timeStamp;
-    std::vector<float> positions;
-    std::vector<unsigned char> intensities;
-    std::vector<unsigned short> laserNumbers;
-    int numDataPoints;
+    unsigned long m_timeStamp;
+    QVector<float> m_positions;
+    QVector<unsigned char> m_intensities;
+    QVector<unsigned short> m_laserNumbers;
+    int m_numDataPoints;
 };
 
 #endif // DATAFRAME3D_H

@@ -1,32 +1,34 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <string>
-
 #include <QMainWindow>
-
 #include "datatimeline.h"
-#include "dataframe3d.h"
+
+class DataFrame3D;
+class DataViewWidget3D;
+class ControlWidget;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow();
-
-public slots:
-    void setCurrentDataFrame(int timeStamp);
-    void setCurrentDataFrame(const std::string& id);
-    void nextDataFrame();
-    void prevDataFrame();
+    MainWindow();    
 
 signals:
     void currentDataFrameChanged(const DataFrame3D &frame);
+    void newMaxDataPoints(const int numDataPoints);
+
+public slots:
+    void setCurrentDataFrame(const int timeStamp);
+    void nextDataFrame();
+    void prevDataFrame();
+    void openFiles();
 
 private:
     DataTimeline timeline;
-
+    DataViewWidget3D *dataViewWidget;
+    ControlWidget *controlWidget;
 };
 
 #endif // MAINWINDOW_H

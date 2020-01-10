@@ -1,12 +1,15 @@
 #include "dataviewwidget3d.h"
 
+#include <iostream>
+
 DataViewWidget3D::DataViewWidget3D(QWidget *parent)
     : QOpenGLWidget(parent),
       xRot(0),
       yRot(0),
       zRot(0),
+      m_fov(45.0f),
       shaderProgram(nullptr),
-      currentDataFrame("test.ply") {}
+      m_currentDataFrame() {}
 
 DataViewWidget3D::~DataViewWidget3D()
 {
@@ -67,6 +70,24 @@ void DataViewWidget3D::setZRotation(int angle)
     }
 }
 
+void DataViewWidget3D::changeCurrentDataFrame(const DataFrame3D &frame)
+{
+    m_currentDataFrame = frame;
+    vbo.bind();
+    vbo.write(0, m_currentDataFrame.positions().constData(), 100000 * 3 * sizeof(float));
+    vbo.release();
+    update();
+    //this->initializeGL();
+    std::cout << "Data View Widget: Current data frame changed" << std::endl;
+}
+
+void DataViewWidget3D::setMaxDataPoints(const int newMaxDataPoints)
+{    
+    vbo.bind();
+    vbo.allocate(m_currentDataFrame.positions().data(), newMaxDataPoints * sizeof(float));
+    vbo.release();
+}
+
 void DataViewWidget3D::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -88,7 +109,7 @@ void DataViewWidget3D::initializeGL()
 
     vbo.create();
     vbo.bind();
-    vbo.allocate(currentDataFrame.positions().data(), currentDataFrame.positions().size() * sizeof(float));
+    vbo.allocate(100000 * 3 * sizeof(float));
 
     setupVertexAttribs();
 
@@ -119,12 +140,15 @@ void DataViewWidget3D::paintGL()
 
     QOpenGLVertexArrayObject::Binder vaoBinder(&vao);
     shaderProgram->bind();
+    float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
+    proj.setToIdentity();
+    proj.perspective(m_fov, aspectRatio, 0.1f, 1000.0f);
     shaderProgram->setUniformValue(projMatrixLoc, proj);
-    shaderProgram->setUniformValue(mvMatrixLoc, camera * world);
+    shaderProgram->setUniformValue(mvMatrixLoc, camera * world);    
     QMatrix3x3 normalMatrix = world.normalMatrix();
     shaderProgram->setUniformValue(normalMatrixLoc, normalMatrix);
 
-    glDrawArrays(GL_POINTS, 0, currentDataFrame.numDataPoints());
+    glDrawArrays(GL_POINTS, 0, m_currentDataFrame.numDataPoints());
 
     shaderProgram->release();
 }
@@ -145,13 +169,27 @@ void DataViewWidget3D::mouseMoveEvent(QMouseEvent *event)
     int dx = event->x() - lastPos.x();
     int dy = event->y() - lastPos.y();
 
-    if (event->buttons() & Qt::LeftButton) {
+    if (event->buttons() & Qt::RightButton) {
         setXRotation(xRot + 8 * dy);
         setYRotation(yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
+    } else if (event->buttons() & Qt::LeftButton) {
         setXRotation(xRot + 8 * dy);
         setZRotation(zRot + 8 * dx);
     }
 
     lastPos = event->pos();
+}
+
+void DataViewWidget3D::wheelEvent(QWheelEvent *event)
+{
+    QPoint degrees = event->angleDelta() / 8;
+
+    if (m_fov >= 1.0f && m_fov <= 45.0f)
+        m_fov -= degrees.y();
+    if (m_fov <= 1.0f)
+        m_fov = 1.0f;
+    if (m_fov >= 45.0f)
+        m_fov = 45.0f;
+
+    update();
 }

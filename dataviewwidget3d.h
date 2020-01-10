@@ -10,9 +10,9 @@
 #include <QOpenGLShaderProgram>
 #include <QMatrix4x4>
 #include <QMouseEvent>
+#include <QPoint>
 
 #include "dataframe3d.h"
-#include "datatimeline.h"
 
 class DataViewWidget3D : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -29,7 +29,8 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
-    void changeCurrentFrame(const DataFrame3D &frame);
+    void changeCurrentDataFrame(const DataFrame3D &frame);
+    void setMaxDataPoints(const int maxDataPoints);
     //void cleanup();
 
 signals:
@@ -43,17 +44,19 @@ protected:
     void resizeGL(int width, int height) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
 private:
     void setupVertexAttribs();
 
-    DataFrame3D currentDataFrame;
+    DataFrame3D m_currentDataFrame;
+    unsigned long m_maxDataPoints;
 
     int xRot;
     int yRot;
     int zRot;
-    QPoint lastPos;
-    //DataFrame3D dataFrame;
+    float m_fov;
+    QPoint lastPos;    
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;
     QOpenGLShaderProgram *shaderProgram;

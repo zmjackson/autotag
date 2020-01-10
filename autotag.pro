@@ -31,9 +31,9 @@ SOURCES += \
     datapoint.cpp \
     utilities.cpp \
     dataviewwidget3d.cpp \
-    window.cpp \
     tinyply.cpp \
-    datatimeline.cpp
+    datatimeline.cpp \
+    controlwidget.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,11 +41,12 @@ HEADERS += \
     tinyply.h \
     datapoint.h \
     dataviewwidget3d.h \
-    window.h \
-    datatimeline.h
+    datatimeline.h \
+    controlwidget.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    form.ui
 
 DISTFILES += \
     vertex.vert \

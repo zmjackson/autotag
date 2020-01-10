@@ -1,31 +1,59 @@
 #include "datatimeline.h"
+#include <QStringList>
+#include <QString>
 
 DataTimeline::DataTimeline()
 {
+    m_currentTimeStamp = 0;
+}
 
+DataTimeline::DataTimeline(const QStringList &fileList)
+    : m_currentTimeStamp(0)
+{    
+    m_dataFrames.reserve(fileList.size());
+    m_maxDataPoints = 0;
+    auto it = m_dataFrames.begin();
+    for (const QString &fileName : fileList) {
+        m_dataFrames.emplace(it, DataFrame3D(fileName));
+        if (it->numDataPoints() > m_maxDataPoints)
+            m_maxDataPoints = it->numDataPoints();
+        ++it;
+    }
 }
 
 const DataFrame3D &DataTimeline::currentFrame() const
 {
-    return dataFrames.at(currentTimeStamp);
+    return m_dataFrames[m_currentTimeStamp];
 }
 
-const DataFrame3D &DataTimeline::frameWithId(const std::string &id) const
+void DataTimeline::addFrame(DataFrame3D &&frame)
 {
-    return dataFrames.at(timeStamps.at(id));
+    m_dataFrames.push_back(std::forward<DataFrame3D>(frame));
+}
+
+void DataTimeline::setCurrentFrame(const int timeStamp)
+{
+    m_currentTimeStamp = timeStamp;
 }
 
 void DataTimeline::nextFrame()
 {
-    ++currentTimeStamp;
+    int frames = this->numFrames();
+    m_currentTimeStamp = (m_currentTimeStamp + 1) % frames;
 }
 
 void DataTimeline::prevFrame()
 {
-    --currentTimeStamp;
+    int frames = this->numFrames();
+    m_currentTimeStamp = ((m_currentTimeStamp - 1) + frames) % frames;
 }
 
-void DataTimeline::numFrames()
+int DataTimeline::numFrames() const
 {
-    return dataFrames.size();
+    return m_dataFrames.size();
+}
+
+int DataTimeline::maxDataPoints() const
+{
+    return m_maxDataPoints;
 }
