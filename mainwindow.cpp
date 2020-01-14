@@ -57,15 +57,13 @@ void MainWindow::setCurrentDataFrame(const int timeStamp)
 }
 
 void MainWindow::nextDataFrame()
-{
-    std::cout << "MainWindow: next" << std::endl;
+{    
     timeline.nextFrame();
     emit currentDataFrameChanged(timeline.currentFrame());
 }
 
 void MainWindow::prevDataFrame()
-{
-    std::cout << "MainWindow: prev" << std::endl;
+{    
     timeline.prevFrame();
     emit currentDataFrameChanged(timeline.currentFrame());
 }

@@ -1,7 +1,5 @@
 #include "dataviewwidget3d.h"
 
-#include <iostream>
-
 DataViewWidget3D::DataViewWidget3D(QWidget *parent)
     : QOpenGLWidget(parent),
       xRot(0),
@@ -72,19 +70,17 @@ void DataViewWidget3D::setZRotation(int angle)
 
 void DataViewWidget3D::changeCurrentDataFrame(const DataFrame3D &frame)
 {
-    m_currentDataFrame = frame;
+    m_currentDataFrame = frame;    
     vbo.bind();
-    vbo.write(0, m_currentDataFrame.positions().constData(), 100000 * 3 * sizeof(float));
+    vbo.write(0, m_currentDataFrame.pointData().constData(), m_currentDataFrame.numDataPoints() * 4 * sizeof(float));
     vbo.release();
     update();
-    //this->initializeGL();
-    std::cout << "Data View Widget: Current data frame changed" << std::endl;
 }
 
 void DataViewWidget3D::setMaxDataPoints(const int newMaxDataPoints)
 {    
     vbo.bind();
-    vbo.allocate(m_currentDataFrame.positions().data(), newMaxDataPoints * sizeof(float));
+    vbo.allocate(m_currentDataFrame.pointData().constData(), newMaxDataPoints * sizeof(float));
     vbo.release();
 }
 
@@ -109,7 +105,7 @@ void DataViewWidget3D::initializeGL()
 
     vbo.create();
     vbo.bind();
-    vbo.allocate(100000 * 3 * sizeof(float));
+    vbo.allocate((100000 * 4 * sizeof(float)));
 
     setupVertexAttribs();
 
@@ -124,7 +120,9 @@ void DataViewWidget3D::setupVertexAttribs()
     vbo.bind();
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     f->glEnableVertexAttribArray(0);
-    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    f->glEnableVertexAttribArray(1);
+    f->glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
     vbo.release();
 }
 

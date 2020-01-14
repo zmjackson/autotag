@@ -22,17 +22,28 @@ DataFrame3D::DataFrame3D(const QString &filePath)
     //printPlyInfo(file);
     m_numDataPoints = positionData->count;
 
-    m_positions.resize(3 * positionData->count);
-    std::memcpy(m_positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
-    m_intensities.resize(intensityData->count);
-    std::memcpy(m_intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
-    m_laserNumbers.resize(laserNumberData->count);
-    std::memcpy(m_laserNumbers.data(), laserNumberData->buffer.get(), laserNumberData->buffer.size_bytes());
+    std::vector<float> positions(3 * positionData->count);
+    std::memcpy(positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
+    float max_val = *std::max_element(positions.begin(), positions.end());
+    for (auto& it : positions)
+        it /= max_val;
 
-    auto max = std::max_element(m_positions.begin(), m_positions.end());
-    float max_val = *max;
-    for (auto& it : m_positions)
-        it /= max_val;    
+    std::vector<unsigned char> intensities(intensityData->count);
+    std::memcpy(intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
+
+    std::vector<unsigned short> laserNumbers(laserNumberData->count);
+    std::memcpy(laserNumbers.data(), laserNumberData->buffer.get(), laserNumberData->buffer.size_bytes());
+
+    m_vertData.resize(m_numDataPoints * 4);
+    float ucharMax = static_cast<float>(std::numeric_limits<char>::max());
+    int positionIndex = 0;
+    int intensityIndex = 0;
+    for (int vertIndex = 0; vertIndex < m_vertData.size(); vertIndex += 4) {
+        m_vertData[vertIndex + 0] = positions[positionIndex++];
+        m_vertData[vertIndex + 1] = positions[positionIndex++];
+        m_vertData[vertIndex + 2] = positions[positionIndex++];
+        m_vertData[vertIndex + 3] = static_cast<float>(intensities[intensityIndex++]) / ucharMax;
+    }
 }
 
 /*std::vector<char> DataFrame3D::loadBinaryFile(const std::string &filePath)
@@ -111,18 +122,8 @@ int DataFrame3D::numDataPoints() const
     return m_numDataPoints;
 }
 
-const QVector<float> &DataFrame3D::positions() const
+const QVector<float> &DataFrame3D::pointData() const
 {
-    return m_positions;
-}
-
-const QVector<unsigned char> &DataFrame3D::intensities() const
-{
-    return m_intensities;
-}
-
-const QVector<unsigned short> &DataFrame3D::laserNumbers() const
-{
-    return m_laserNumbers;
+    return m_vertData;
 }
 

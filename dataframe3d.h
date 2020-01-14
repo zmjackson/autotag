@@ -26,21 +26,14 @@ public:
     DataFrame3D(const QString &filePath);
     unsigned long timeStamp() const;
     int numDataPoints() const;
-    const QVector<float> &positions() const;
-    const QVector<unsigned char> &intensities() const;
-    const QVector<unsigned short> &laserNumbers() const;
-    /*size_t positionsSizeBytes() const;
-    size_t laserNumbersSizeBytes() const;
-    size_t intensitiesSizeBytes() const;*/
+    const QVector<float> &pointData() const;
 
 private:          
     std::vector<char> loadBinaryFile(const std::string &filePath);
     std::vector<DataPoint> parsePlyFile(const std::vector<char> &binaryData);
 
     unsigned long m_timeStamp;
-    QVector<float> m_positions;
-    QVector<unsigned char> m_intensities;
-    QVector<unsigned short> m_laserNumbers;
+    QVector<float> m_vertData;
     int m_numDataPoints;
 };
 

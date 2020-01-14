@@ -5,6 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 class QPushButton;
+class QTimer;
 QT_END_NAMESPACE
 
 class MainWindow;
@@ -21,8 +22,12 @@ signals:
     void prevDataFrameRequest();
 
 public slots:
+    void playPauseButtonPressed();
 
 private:
+    bool m_isPlaying;
+    QPushButton *m_playPauseButton;
+    QTimer *m_frameTimer;
     MainWindow *mainWindow;
     QPushButton *nextFrameButton;
     QPushButton *prevFrameButton;
