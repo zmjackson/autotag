@@ -22,11 +22,11 @@ MainWindow::MainWindow()
     setMenuBar(menuBar);
 
     QWidget *mainWidget = new QWidget;
-    QVBoxLayout *mainLayout = new QVBoxLayout;
+    QHBoxLayout *mainLayout = new QHBoxLayout;
 
     dataViewWidget = new DataViewWidget3D(this);
     QSizePolicy viewerPolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    viewerPolicy.setVerticalStretch(10);
+    viewerPolicy.setHorizontalStretch(10);
     dataViewWidget->setSizePolicy(viewerPolicy);
     connect(this, &MainWindow::currentDataFrameChanged,
             dataViewWidget, &DataViewWidget3D::changeCurrentDataFrame);
@@ -35,15 +35,15 @@ MainWindow::MainWindow()
 
     controlWidget = new ControlWidget(this);
     QSizePolicy controllerPolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    controllerPolicy.setVerticalStretch(1);
+    controllerPolicy.setHorizontalStretch(1);
     controlWidget->setSizePolicy(controllerPolicy);
     connect(controlWidget, &ControlWidget::nextDataFrameRequest,
             this, &MainWindow::nextDataFrame);
     connect(controlWidget, &ControlWidget::prevDataFrameRequest,
             this, &MainWindow::prevDataFrame);
 
-    mainLayout->addWidget(dataViewWidget);
     mainLayout->addWidget(controlWidget);
+    mainLayout->addWidget(dataViewWidget);
 
     mainWidget->setLayout(mainLayout);
 
@@ -80,6 +80,8 @@ void MainWindow::openFiles()
     int oldMaxDataPoints = timeline.maxDataPoints();
     for (const QString &file : fileNames)
         timeline.addFrame({file});
+    DataFrame3D test;
+    test.loadJson("test.json");
     /*if (timeline.maxDataPoints() > oldMaxDataPoints)
         emit newMaxDataPoints(timeline.maxDataPoints());*/
 }

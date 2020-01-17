@@ -57,9 +57,12 @@ private:
     int zRot;
     float m_fov;
     QPoint lastPos;    
-    QOpenGLVertexArrayObject vao;
-    QOpenGLBuffer vbo;
-    QOpenGLShaderProgram *shaderProgram;
+    QOpenGLVertexArrayObject dataVao;
+    QOpenGLVertexArrayObject trackingVao;
+    QOpenGLBuffer dataVbo;
+    QOpenGLBuffer trackingVbo;
+    QOpenGLShaderProgram *dataShaderProgram;
+    QOpenGLShaderProgram *trackingShaderProgram;
     int projMatrixLoc;
     int mvMatrixLoc;
     int normalMatrixLoc;

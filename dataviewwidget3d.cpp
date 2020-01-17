@@ -6,17 +6,17 @@ DataViewWidget3D::DataViewWidget3D(QWidget *parent)
       yRot(0),
       zRot(0),
       m_fov(45.0f),
-      shaderProgram(nullptr),
+      dataShaderProgram(nullptr),
       m_currentDataFrame() {}
 
 DataViewWidget3D::~DataViewWidget3D()
 {
-    if (shaderProgram == nullptr)
+    if (dataShaderProgram == nullptr)
         return;
     makeCurrent();
-    vbo.destroy();
-    delete shaderProgram;
-    shaderProgram = 0;
+    dataVbo.destroy();
+    delete dataShaderProgram;
+    dataShaderProgram = 0;
     doneCurrent();
 }
 
@@ -71,17 +71,17 @@ void DataViewWidget3D::setZRotation(int angle)
 void DataViewWidget3D::changeCurrentDataFrame(const DataFrame3D &frame)
 {
     m_currentDataFrame = frame;    
-    vbo.bind();
-    vbo.write(0, m_currentDataFrame.pointData().constData(), m_currentDataFrame.numDataPoints() * 4 * sizeof(float));
-    vbo.release();
+    dataVbo.bind();
+    dataVbo.write(0, m_currentDataFrame.pointData().constData(), m_currentDataFrame.numDataPoints() * 4 * sizeof(float));
+    dataVbo.release();
     update();
 }
 
 void DataViewWidget3D::setMaxDataPoints(const int newMaxDataPoints)
 {    
-    vbo.bind();
-    vbo.allocate(m_currentDataFrame.pointData().constData(), newMaxDataPoints * sizeof(float));
-    vbo.release();
+    dataVbo.bind();
+    dataVbo.allocate(m_currentDataFrame.pointData().constData(), newMaxDataPoints * sizeof(float));
+    dataVbo.release();
 }
 
 void DataViewWidget3D::initializeGL()
@@ -89,41 +89,41 @@ void DataViewWidget3D::initializeGL()
     initializeOpenGLFunctions();
     glClearColor(0, 0, 0, 1);
 
-    shaderProgram = new QOpenGLShaderProgram;
-    shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "vertex.vert");
-    shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "fragment.frag");
-    shaderProgram->bindAttributeLocation("vertex", 0);
-    shaderProgram->link();
+    dataShaderProgram = new QOpenGLShaderProgram;
+    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "datapoint.vert");
+    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "datapoint.frag");
+    dataShaderProgram->bindAttributeLocation("vertex", 0);
+    dataShaderProgram->link();
 
-    shaderProgram->bind();
-    projMatrixLoc = shaderProgram->uniformLocation("projMatrix");
-    mvMatrixLoc = shaderProgram->uniformLocation("mvMatrix");
-    normalMatrixLoc = shaderProgram->uniformLocation("normalMatrix");
+    dataShaderProgram->bind();
+    projMatrixLoc = dataShaderProgram->uniformLocation("projMatrix");
+    mvMatrixLoc = dataShaderProgram->uniformLocation("mvMatrix");
+    normalMatrixLoc = dataShaderProgram->uniformLocation("normalMatrix");
 
-    vao.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vao);
+    dataVao.create();
+    QOpenGLVertexArrayObject::Binder dataVaoBinder(&dataVao);
 
-    vbo.create();
-    vbo.bind();
-    vbo.allocate((100000 * 4 * sizeof(float)));
+    dataVbo.create();
+    dataVbo.bind();
+    dataVbo.allocate((100000 * 4 * sizeof(float)));
 
     setupVertexAttribs();
 
     camera.setToIdentity();
     camera.translate(0, 0, -1);
 
-    shaderProgram->release();
+    dataShaderProgram->release();
 }
 
 void DataViewWidget3D::setupVertexAttribs()
 {
-    vbo.bind();
+    dataVbo.bind();
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     f->glEnableVertexAttribArray(0);
     f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     f->glEnableVertexAttribArray(1);
     f->glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
-    vbo.release();
+    dataVbo.release();
 }
 
 void DataViewWidget3D::paintGL()
@@ -136,19 +136,19 @@ void DataViewWidget3D::paintGL()
     world.rotate(yRot / 16.0f, 0, 1, 0);
     world.rotate(zRot / 16.0f, 0, 0, 1);
 
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vao);
-    shaderProgram->bind();
+    QOpenGLVertexArrayObject::Binder dataVaoBinder(&dataVao);
+    dataShaderProgram->bind();
     float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
     proj.setToIdentity();
     proj.perspective(m_fov, aspectRatio, 0.1f, 1000.0f);
-    shaderProgram->setUniformValue(projMatrixLoc, proj);
-    shaderProgram->setUniformValue(mvMatrixLoc, camera * world);    
+    dataShaderProgram->setUniformValue(projMatrixLoc, proj);
+    dataShaderProgram->setUniformValue(mvMatrixLoc, camera * world);
     QMatrix3x3 normalMatrix = world.normalMatrix();
-    shaderProgram->setUniformValue(normalMatrixLoc, normalMatrix);
+    dataShaderProgram->setUniformValue(normalMatrixLoc, normalMatrix);
 
     glDrawArrays(GL_POINTS, 0, m_currentDataFrame.numDataPoints());
 
-    shaderProgram->release();
+    dataShaderProgram->release();
 }
 
 void DataViewWidget3D::resizeGL(int width, int height)

@@ -1,5 +1,12 @@
 #include "dataframe3d.h"
+#include "json/json.h"
 #include <QString>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <QVector4D>
+#include <QQuaternion>
+
 
 DataFrame3D::DataFrame3D()
     : m_timeStamp(0),
@@ -42,6 +49,7 @@ DataFrame3D::DataFrame3D(const QString &filePath)
         m_vertData[vertIndex + 0] = positions[positionIndex++];
         m_vertData[vertIndex + 1] = positions[positionIndex++];
         m_vertData[vertIndex + 2] = positions[positionIndex++];
+        // Normalize intesnsity to a float between 0 and 1
         m_vertData[vertIndex + 3] = static_cast<float>(intensities[intensityIndex++]) / ucharMax;
     }
 }
@@ -127,3 +135,64 @@ const QVector<float> &DataFrame3D::pointData() const
     return m_vertData;
 }
 
+const TrackedObject DataFrame3D::loadJson(const QString fileName)
+{
+    std::ifstream file(fileName.toStdString(), std::ifstream::binary);
+    file.seekg(0, file.end);
+    int fileLength = file.tellg();
+    file.seekg(0, file.beg);
+
+    std::vector<char> buffer(fileLength);
+
+    file.read(buffer.data(), fileLength);
+
+    Json::Value scene;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    std::string errors;
+
+    bool parseSuccessful = reader->parse(buffer.data(), buffer.data() + fileLength, &scene, &errors);
+    if (!parseSuccessful)
+        std::cout << errors << "\n";
+
+    m_trackingData.resize(scene.size());
+    int i = 0;
+
+    for(Json::Value object : scene) {
+        TrackedObject annotation;
+        float x, y, z, length, width, height;
+
+        x = object["center"].get("x", 0).asFloat();
+        y = object["center"].get("y", 0).asFloat();
+        z = object["center"].get("z", 0).asFloat();
+
+        length = object["length"].asFloat();
+        width = object["width"].asFloat();
+        height = object["height"].asFloat();
+
+        // This assumes that length = x, width = y, height = z (may need to be changed)
+        QVector<float> verts = {
+            x + length/2, y + width/2, z + height/2, // Front right top
+            x + length/2, y + width/2, z - height/2, // Front right bottom
+            x + length/2, y - width/2, z - height/2, // Front left bottom
+            x + length/2, y - width/2, z + height/2, // Front left top
+            x - length/2, y + width/2, z + height/2, // Back right top
+            x - length/2, y + width/2, z - height/2, // Back right bottom
+            x - length/2, y - width/2, z - height/2, // Back left bottom
+            x - length/2, y - width/2, z + height/2, // Back left top
+        };
+
+        QQuaternion rotationQuat;
+        rotationQuat.setScalar(object["rotation"].get("w", 0).asFloat());
+        rotationQuat.setX(object["rotation"].get("x", 0).asFloat());
+        rotationQuat.setY(object["rotation"].get("y", 0).asFloat());
+        rotationQuat.setZ(object["rotation"].get("z", 0).asFloat());
+        QMatrix3x3 rotation = rotationQuat.toRotationMatrix();
+
+        std::string uuid = object["track_label_uuid"].asString();
+        uint64_t timestamp = object["timestamp"].asUInt64();
+        std::string labelClass = object["label_class"].asString();
+
+        return {verts, rotation, uuid, timestamp, labelClass};
+    }
+}

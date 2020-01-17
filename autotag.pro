@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += console
 
+INCLUDEPATH += /home/zachary/Projects/glm
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
@@ -33,7 +35,8 @@ SOURCES += \
     dataviewwidget3d.cpp \
     tinyply.cpp \
     datatimeline.cpp \
-    controlwidget.cpp
+    controlwidget.cpp \
+    jsoncpp.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -42,7 +45,9 @@ HEADERS += \
     datapoint.h \
     dataviewwidget3d.h \
     datatimeline.h \
-    controlwidget.h
+    controlwidget.h \
+    json/json.h \
+    trackedobject.h
 
 FORMS += \
         mainwindow.ui \

@@ -14,6 +14,7 @@
 #include "tinyply.h"
 #include "datapoint.h"
 #include "utilities.cpp"
+#include "trackedobject.h"
 
 QT_BEGIN_NAMESPACE
 class QString;
@@ -27,6 +28,7 @@ public:
     unsigned long timeStamp() const;
     int numDataPoints() const;
     const QVector<float> &pointData() const;
+    const TrackedObject loadJson(const QString fileName);
 
 private:          
     std::vector<char> loadBinaryFile(const std::string &filePath);
@@ -35,6 +37,8 @@ private:
     unsigned long m_timeStamp;
     QVector<float> m_vertData;
     int m_numDataPoints;
+
+    QVector<TrackedObject> m_trackingData;
 };
 
 #endif // DATAFRAME3D_H
