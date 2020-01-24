@@ -16,6 +16,7 @@ public:
     const DataFrame3D &currentFrame() const;
     const DataFrame3D &frameAt(const int timeStamp) const;
     void addFrame(DataFrame3D &&frame);
+    void addTrackingData(const QStringList &files);
     void setCurrentFrame(const int timeStamp);
     void nextFrame();
     void prevFrame();

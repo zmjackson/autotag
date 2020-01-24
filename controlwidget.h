@@ -19,7 +19,7 @@ public:
 
 signals:
     void nextDataFrameRequest();
-    void prevDataFrameRequest();
+    void prevDataFrameRequest();    
 
 public slots:
     void playPauseButtonPressed();
@@ -30,7 +30,7 @@ private:
     QTimer *m_frameTimer;
     MainWindow *mainWindow;
     QPushButton *nextFrameButton;
-    QPushButton *prevFrameButton;
+    QPushButton *prevFrameButton;    
 };
 
 #endif // CONTROLWIDGET_H

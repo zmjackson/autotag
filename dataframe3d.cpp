@@ -31,9 +31,9 @@ DataFrame3D::DataFrame3D(const QString &filePath)
 
     std::vector<float> positions(3 * positionData->count);
     std::memcpy(positions.data(), positionData->buffer.get(), positionData->buffer.size_bytes());
-    float max_val = *std::max_element(positions.begin(), positions.end());
+    maxDistanceRef = *std::max_element(positions.begin(), positions.end());
     for (auto& it : positions)
-        it /= max_val;
+        it /= maxDistanceRef;
 
     std::vector<unsigned char> intensities(intensityData->count);
     std::memcpy(intensities.data(), intensityData->buffer.get(), intensityData->buffer.size_bytes());
@@ -49,7 +49,7 @@ DataFrame3D::DataFrame3D(const QString &filePath)
         m_vertData[vertIndex + 0] = positions[positionIndex++];
         m_vertData[vertIndex + 1] = positions[positionIndex++];
         m_vertData[vertIndex + 2] = positions[positionIndex++];
-        // Normalize intesnsity to a float between 0 and 1
+        // Normalize intensity to a float between 0 and 1
         m_vertData[vertIndex + 3] = static_cast<float>(intensities[intensityIndex++]) / ucharMax;
     }
 }
@@ -135,7 +135,12 @@ const QVector<float> &DataFrame3D::pointData() const
     return m_vertData;
 }
 
-const TrackedObject DataFrame3D::loadJson(const QString fileName)
+const QVector<TrackedObject> &DataFrame3D::trackingData() const
+{
+    return m_trackingData;
+}
+
+void DataFrame3D::loadJson(const QString fileName)
 {
     std::ifstream file(fileName.toStdString(), std::ifstream::binary);
     file.seekg(0, file.end);
@@ -170,6 +175,8 @@ const TrackedObject DataFrame3D::loadJson(const QString fileName)
         width = object["width"].asFloat();
         height = object["height"].asFloat();
 
+        QVector3D position(x, y, z);
+
         // This assumes that length = x, width = y, height = z (may need to be changed)
         QVector<float> verts = {
             x + length/2, y + width/2, z + height/2, // Front right top
@@ -182,6 +189,9 @@ const TrackedObject DataFrame3D::loadJson(const QString fileName)
             x - length/2, y - width/2, z + height/2, // Back left top
         };
 
+        for (float &vert : verts)
+            vert /= maxDistanceRef;
+
         QQuaternion rotationQuat;
         rotationQuat.setScalar(object["rotation"].get("w", 0).asFloat());
         rotationQuat.setX(object["rotation"].get("x", 0).asFloat());
@@ -193,6 +203,12 @@ const TrackedObject DataFrame3D::loadJson(const QString fileName)
         uint64_t timestamp = object["timestamp"].asUInt64();
         std::string labelClass = object["label_class"].asString();
 
-        return {verts, rotation, uuid, timestamp, labelClass};
+        m_trackingData[i] = {verts, position, rotation, uuid, timestamp, labelClass};
+        ++i;
     }
+}
+
+void DataFrame3D::resizeTrackingData(int size)
+{
+    m_trackingData.resize(size);
 }

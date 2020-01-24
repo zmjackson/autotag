@@ -31,6 +31,12 @@ void DataTimeline::addFrame(DataFrame3D &&frame)
     m_dataFrames.push_back(std::forward<DataFrame3D>(frame));
 }
 
+void DataTimeline::addTrackingData(const QStringList &files)
+{
+    for (int i = 0; i < files.size(); ++i)
+        m_dataFrames[i].loadJson(files[i]);
+}
+
 void DataTimeline::setCurrentFrame(const int timeStamp)
 {
     m_currentTimeStamp = timeStamp;

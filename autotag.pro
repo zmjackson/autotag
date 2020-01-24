@@ -54,8 +54,10 @@ FORMS += \
     form.ui
 
 DISTFILES += \
-    vertex.vert \
-    fragment.frag \
     example_cube-binary.ply \
     example_cube-ascii.ply \
-    lidar_test.ply
+    lidar_test.ply \
+    tracking.vert \
+    tracking.frag \
+    data.vert \
+    data.frag

@@ -15,10 +15,17 @@ MainWindow::MainWindow()
 {
     QMenuBar *menuBar = new QMenuBar;
     QMenu *fileMenuWindow = menuBar->addMenu(tr("&File"));
+
     QAction *openFiles = new QAction(fileMenuWindow);
     openFiles->setText(tr("Open"));
     fileMenuWindow->addAction(openFiles);
     connect(openFiles, &QAction::triggered, this, &MainWindow::openFiles);
+
+    QAction *addTrackingData = new QAction(fileMenuWindow);
+    addTrackingData->setText(tr("Add tracking data"));
+    fileMenuWindow->addAction(addTrackingData);
+    connect(addTrackingData, &QAction::triggered, this, &MainWindow::openTrackingDataFiles);
+
     setMenuBar(menuBar);
 
     QWidget *mainWidget = new QWidget;
@@ -84,4 +91,16 @@ void MainWindow::openFiles()
     test.loadJson("test.json");
     /*if (timeline.maxDataPoints() > oldMaxDataPoints)
         emit newMaxDataPoints(timeline.maxDataPoints());*/
+}
+
+void MainWindow::openTrackingDataFiles()
+{
+    QFileDialog openFilesDialog(this);
+    openFilesDialog.setFileMode(QFileDialog::ExistingFiles);
+    openFilesDialog.setNameFilter(tr("Json files (*.json)"));
+    openFilesDialog.setViewMode(QFileDialog::Detail);
+    QStringList fileNames;
+    if (openFilesDialog.exec())
+        fileNames = openFilesDialog.selectedFiles();
+    timeline.addTrackingData(fileNames);
 }

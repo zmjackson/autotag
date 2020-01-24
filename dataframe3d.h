@@ -28,7 +28,9 @@ public:
     unsigned long timeStamp() const;
     int numDataPoints() const;
     const QVector<float> &pointData() const;
-    const TrackedObject loadJson(const QString fileName);
+    const QVector<TrackedObject> &trackingData() const;
+    void loadJson(const QString fileName);
+    void resizeTrackingData(int size);
 
 private:          
     std::vector<char> loadBinaryFile(const std::string &filePath);
@@ -37,6 +39,7 @@ private:
     unsigned long m_timeStamp;
     QVector<float> m_vertData;
     int m_numDataPoints;
+    int maxDistanceRef;
 
     QVector<TrackedObject> m_trackingData;
 };

@@ -11,6 +11,7 @@
 #include <QMatrix4x4>
 #include <QMouseEvent>
 #include <QPoint>
+#include <unordered_map>
 
 #include "dataframe3d.h"
 
@@ -47,7 +48,12 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
 
 private:
-    void setupVertexAttribs();
+    void createDataShaderProgram();
+    void createTrackingShaderProgram();
+    void setupDataVertexAttribs();
+    void setupTrackingVertexAttribs();
+    void createDataGl();
+    void createTrackingGl();
 
     DataFrame3D m_currentDataFrame;
     unsigned long m_maxDataPoints;
@@ -61,15 +67,23 @@ private:
     QOpenGLVertexArrayObject trackingVao;
     QOpenGLBuffer dataVbo;
     QOpenGLBuffer trackingVbo;
+    QOpenGLBuffer trackingEbo;
     QOpenGLShaderProgram *dataShaderProgram;
     QOpenGLShaderProgram *trackingShaderProgram;
-    int projMatrixLoc;
-    int mvMatrixLoc;
-    int normalMatrixLoc;
-    int lightPosLoc;
+    int dataProjMatrixLoc;
+    int dataViewMatrixLoc;
+    int dataModelMatrixLoc;
+    int trackingProjMatrixLoc;
+    int trackingViewMatrixLoc;
+    int trackingModelMatrixLoc;
+    int classColorLoc;
     QMatrix4x4 proj;
-    QMatrix4x4 camera;
-    QMatrix4x4 world;
+    QMatrix4x4 view;
+    QMatrix4x4 dataModel;
+    QMatrix4x4 boxModel;
+
+    QVector<unsigned int> indices;
+    std::unordered_map<std::string, QVector4D> classColors;
 };
 
 #endif // DATAVIEWWIDGET3D_H

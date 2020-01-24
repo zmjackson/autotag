@@ -24,6 +24,7 @@ public slots:
     void nextDataFrame();
     void prevDataFrame();
     void openFiles();
+    void openTrackingDataFiles();
 
 private:
     DataTimeline timeline;

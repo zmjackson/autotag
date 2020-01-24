@@ -6,8 +6,14 @@ DataViewWidget3D::DataViewWidget3D(QWidget *parent)
       yRot(0),
       zRot(0),
       m_fov(45.0f),
+      dataVbo(QOpenGLBuffer::VertexBuffer),
+      trackingVbo(QOpenGLBuffer::VertexBuffer),
+      trackingEbo(QOpenGLBuffer::IndexBuffer),
       dataShaderProgram(nullptr),
-      m_currentDataFrame() {}
+      trackingShaderProgram(nullptr),
+      m_currentDataFrame(),
+      classColors({{"VEHICLE", {1.0f, 0.30f, .80f, 1.0f}}, {"ON_ROAD_OBSTACLE", {1.0f, 1.0f, 0.0f, 1.0f}}, {"PEDESTRIAN", {0.0f, 1.0f, 0.0f, 1.0f}}, {"TRUCK", {0.0f, 0.0f, 1.0f, 1.0f}}})
+{}
 
 DataViewWidget3D::~DataViewWidget3D()
 {
@@ -70,10 +76,12 @@ void DataViewWidget3D::setZRotation(int angle)
 
 void DataViewWidget3D::changeCurrentDataFrame(const DataFrame3D &frame)
 {
-    m_currentDataFrame = frame;    
+    m_currentDataFrame = frame;
+
     dataVbo.bind();
     dataVbo.write(0, m_currentDataFrame.pointData().constData(), m_currentDataFrame.numDataPoints() * 4 * sizeof(float));
     dataVbo.release();
+
     update();
 }
 
@@ -87,36 +95,86 @@ void DataViewWidget3D::setMaxDataPoints(const int newMaxDataPoints)
 void DataViewWidget3D::initializeGL()
 {
     initializeOpenGLFunctions();
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.1, 0.1, 0.1, 1);
 
-    dataShaderProgram = new QOpenGLShaderProgram;
-    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "datapoint.vert");
-    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "datapoint.frag");
-    dataShaderProgram->bindAttributeLocation("vertex", 0);
-    dataShaderProgram->link();
+    createDataShaderProgram();
+    createTrackingShaderProgram();
 
-    dataShaderProgram->bind();
-    projMatrixLoc = dataShaderProgram->uniformLocation("projMatrix");
-    mvMatrixLoc = dataShaderProgram->uniformLocation("mvMatrix");
-    normalMatrixLoc = dataShaderProgram->uniformLocation("normalMatrix");
+    createDataGl();
+    setupDataVertexAttribs();
 
-    dataVao.create();
-    QOpenGLVertexArrayObject::Binder dataVaoBinder(&dataVao);
+    createTrackingGl();
+    setupTrackingVertexAttribs();
 
-    dataVbo.create();
-    dataVbo.bind();
-    dataVbo.allocate((100000 * 4 * sizeof(float)));
-
-    setupVertexAttribs();
-
-    camera.setToIdentity();
-    camera.translate(0, 0, -1);
+    view.setToIdentity();
+    view.translate(0, 0, -1);
 
     dataShaderProgram->release();
 }
 
-void DataViewWidget3D::setupVertexAttribs()
+void DataViewWidget3D::createDataShaderProgram()
 {
+    dataShaderProgram = new QOpenGLShaderProgram;
+    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "data.vert");
+    dataShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "data.frag");
+    dataShaderProgram->link();
+    dataShaderProgram->bind();
+
+    dataProjMatrixLoc = dataShaderProgram->uniformLocation("projection");
+    dataViewMatrixLoc = dataShaderProgram->uniformLocation("view");
+    dataModelMatrixLoc = dataShaderProgram->uniformLocation("model");
+}
+
+void DataViewWidget3D::createTrackingShaderProgram()
+{
+    trackingShaderProgram = new QOpenGLShaderProgram;
+    trackingShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "tracking.vert");
+    trackingShaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "tracking.frag");    
+    trackingShaderProgram->link();
+    trackingShaderProgram->bind();
+
+    trackingProjMatrixLoc = dataShaderProgram->uniformLocation("projection");
+    trackingViewMatrixLoc = dataShaderProgram->uniformLocation("view");
+    trackingModelMatrixLoc = dataShaderProgram->uniformLocation("model");
+    classColorLoc = trackingShaderProgram->uniformLocation("classColor");
+}
+
+void DataViewWidget3D::createDataGl()
+{
+    dataVao.create();
+    dataVao.bind();
+    dataVbo.create();
+    dataVbo.bind();
+    dataVbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    dataVbo.allocate((100000 * 4 * sizeof(float)));
+    dataVbo.release();
+    dataVao.release();
+}
+
+void DataViewWidget3D::createTrackingGl()
+{
+    trackingVao.create();
+    trackingVao.bind();
+    trackingVbo.create();
+    trackingVbo.bind();
+    trackingVbo.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    trackingVbo.allocate(8 * 3 * sizeof(float));
+    trackingEbo.create();
+    trackingEbo.bind();
+    trackingEbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    indices = {
+        0, 1, 1, 2, 2, 3, 3, 0, // Front face counterclockwise from top right
+        4, 5, 5, 6, 6, 7, 7, 4, // Back face counterclockwise from top right
+        0, 4, 1, 5, 2, 6, 3, 7  // "Connections" counterclockwise from top right
+    };
+    trackingEbo.allocate(indices.constData(), indices.size() * sizeof(unsigned int));
+    trackingEbo.release();
+    trackingVao.release();
+}
+
+void DataViewWidget3D::setupDataVertexAttribs()
+{
+    dataVao.bind();
     dataVbo.bind();
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     f->glEnableVertexAttribArray(0);
@@ -124,6 +182,18 @@ void DataViewWidget3D::setupVertexAttribs()
     f->glEnableVertexAttribArray(1);
     f->glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
     dataVbo.release();
+    dataVao.release();
+}
+
+void DataViewWidget3D::setupTrackingVertexAttribs()
+{
+    trackingVao.bind();
+    trackingVbo.bind();
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f->glEnableVertexAttribArray(0);
+    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    trackingVbo.release();
+    trackingVao.release();
 }
 
 void DataViewWidget3D::paintGL()
@@ -131,24 +201,35 @@ void DataViewWidget3D::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    world.setToIdentity();
-    world.rotate(180.0f - (xRot / 16.0f), 1, 0, 0);
-    world.rotate(yRot / 16.0f, 0, 1, 0);
-    world.rotate(zRot / 16.0f, 0, 0, 1);
+    dataModel.setToIdentity();
+    dataModel.rotate(180.0f - (xRot / 16.0f), 1, 0, 0);
+    dataModel.rotate(yRot / 16.0f, 0, 1, 0);
+    dataModel.rotate(zRot / 16.0f, 0, 0, 1);
 
-    QOpenGLVertexArrayObject::Binder dataVaoBinder(&dataVao);
-    dataShaderProgram->bind();
     float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
     proj.setToIdentity();
     proj.perspective(m_fov, aspectRatio, 0.1f, 1000.0f);
-    dataShaderProgram->setUniformValue(projMatrixLoc, proj);
-    dataShaderProgram->setUniformValue(mvMatrixLoc, camera * world);
-    QMatrix3x3 normalMatrix = world.normalMatrix();
-    dataShaderProgram->setUniformValue(normalMatrixLoc, normalMatrix);
 
+    dataVao.bind();
+    dataShaderProgram->bind();
+    dataShaderProgram->setUniformValue(dataProjMatrixLoc, proj);
+    dataShaderProgram->setUniformValue(dataViewMatrixLoc, view);
+    dataShaderProgram->setUniformValue(dataModelMatrixLoc, dataModel);
     glDrawArrays(GL_POINTS, 0, m_currentDataFrame.numDataPoints());
 
-    dataShaderProgram->release();
+    trackingVao.bind();
+    trackingShaderProgram->bind();
+    trackingShaderProgram->setUniformValue(trackingProjMatrixLoc, proj);
+    trackingShaderProgram->setUniformValue(trackingViewMatrixLoc, view);
+    trackingVbo.bind();
+    int ts = m_currentDataFrame.trackingData().size();
+    for (const TrackedObject &object : m_currentDataFrame.trackingData()) {
+        trackingVbo.write(0, object.verts.constData(), 24 * sizeof(float));
+        trackingShaderProgram->setUniformValue(trackingModelMatrixLoc, dataModel * QMatrix4x4(object.rotation));
+        trackingShaderProgram->setUniformValue(classColorLoc, classColors[object.labelClass]);
+
+        glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, indices.constData());
+    }
 }
 
 void DataViewWidget3D::resizeGL(int width, int height)

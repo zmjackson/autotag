@@ -22,7 +22,7 @@ ControlWidget::ControlWidget(MainWindow *parent) : mainWindow(parent)
     connect(nextFrameButton, &QPushButton::clicked,
             this, &ControlWidget::nextDataFrameRequest);
     connect(prevFrameButton, &QPushButton::clicked,
-            this, &ControlWidget::prevDataFrameRequest);
+            this, &ControlWidget::prevDataFrameRequest);    
 
     QWidget *navigationContainer = new QWidget;
     navigationContainer->setLayout(navigationButtonLayout);
