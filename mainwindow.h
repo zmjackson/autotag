@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "datatimeline.h"
+#include <set>
 
 class DataFrame3D;
 class DataViewWidget3D;
@@ -30,6 +31,7 @@ private:
     DataTimeline timeline;
     DataViewWidget3D *dataViewWidget;
     ControlWidget *controlWidget;
+    std::set<std::string> trackingLabels;
 };
 
 #endif // MAINWINDOW_H

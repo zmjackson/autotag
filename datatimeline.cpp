@@ -33,8 +33,10 @@ void DataTimeline::addFrame(DataFrame3D &&frame)
 
 void DataTimeline::addTrackingData(const QStringList &files)
 {
-    for (int i = 0; i < files.size(); ++i)
-        m_dataFrames[i].loadJson(files[i]);
+    for (int i = 0; i < files.size(); ++i) {
+        auto labels = m_dataFrames[i].loadJson(files[i]);
+        trackingLabels.insert(labels.begin(), labels.end());
+    }
 }
 
 void DataTimeline::setCurrentFrame(const int timeStamp)

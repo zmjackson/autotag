@@ -48,6 +48,8 @@ MainWindow::MainWindow()
             this, &MainWindow::nextDataFrame);
     connect(controlWidget, &ControlWidget::prevDataFrameRequest,
             this, &MainWindow::prevDataFrame);
+    connect(controlWidget, &ControlWidget::labelColorAdded,
+            dataViewWidget, &DataViewWidget3D::addTrackingClass);
 
     mainLayout->addWidget(controlWidget);
     mainLayout->addWidget(dataViewWidget);
@@ -103,4 +105,6 @@ void MainWindow::openTrackingDataFiles()
     if (openFilesDialog.exec())
         fileNames = openFilesDialog.selectedFiles();
     timeline.addTrackingData(fileNames);
+    for (const std::string &label : timeline.trackingLabels)
+        controlWidget->addTrackingLabel(label);
 }

@@ -11,9 +11,7 @@ DataViewWidget3D::DataViewWidget3D(QWidget *parent)
       trackingEbo(QOpenGLBuffer::IndexBuffer),
       dataShaderProgram(nullptr),
       trackingShaderProgram(nullptr),
-      m_currentDataFrame(),
-      classColors({{"VEHICLE", {1.0f, 0.30f, .80f, 1.0f}}, {"ON_ROAD_OBSTACLE", {1.0f, 1.0f, 0.0f, 1.0f}}, {"PEDESTRIAN", {0.0f, 1.0f, 0.0f, 1.0f}}, {"TRUCK", {0.0f, 0.0f, 1.0f, 1.0f}}})
-{}
+      m_currentDataFrame() {}
 
 DataViewWidget3D::~DataViewWidget3D()
 {
@@ -90,6 +88,15 @@ void DataViewWidget3D::setMaxDataPoints(const int newMaxDataPoints)
     dataVbo.bind();
     dataVbo.allocate(m_currentDataFrame.pointData().constData(), newMaxDataPoints * sizeof(float));
     dataVbo.release();
+}
+
+
+void DataViewWidget3D::addTrackingClass(const std::string &label, const QColor &color)
+{
+    float r = static_cast<float>(color.red()) / 255.0f;
+    float g = static_cast<float>(color.green()) / 255.0f;
+    float b = static_cast<float>(color.blue()) / 255.0f;
+    trackingLabelColors[label] = {r, g, b, 1.0f};
 }
 
 void DataViewWidget3D::initializeGL()
@@ -226,7 +233,7 @@ void DataViewWidget3D::paintGL()
     for (const TrackedObject &object : m_currentDataFrame.trackingData()) {
         trackingVbo.write(0, object.verts.constData(), 24 * sizeof(float));
         trackingShaderProgram->setUniformValue(trackingModelMatrixLoc, dataModel * QMatrix4x4(object.rotation));
-        trackingShaderProgram->setUniformValue(classColorLoc, classColors[object.labelClass]);
+        trackingShaderProgram->setUniformValue(classColorLoc, trackingLabelColors[object.labelClass]);
 
         glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, indices.constData());
     }

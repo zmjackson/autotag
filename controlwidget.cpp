@@ -4,8 +4,15 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QTimer>
+#include <QLabel>
+#include <QListWidget>
+#include <QPixmap>
+#include <QColor>
 
-ControlWidget::ControlWidget(MainWindow *parent) : mainWindow(parent)
+ControlWidget::ControlWidget(MainWindow *parent)
+    : mainWindow(parent),
+      numTrackingLabels(0),
+      colorNames(QColor::colorNames())
 {    
     QVBoxLayout *mainLayout = new QVBoxLayout;
     m_playPauseButton = new QPushButton(tr("Play"), this);
@@ -18,15 +25,20 @@ ControlWidget::ControlWidget(MainWindow *parent) : mainWindow(parent)
     prevFrameButton = new QPushButton(tr("Previous"), this);
     navigationButtonLayout->addWidget(prevFrameButton);
     navigationButtonLayout->addWidget(nextFrameButton);
-
     connect(nextFrameButton, &QPushButton::clicked,
             this, &ControlWidget::nextDataFrameRequest);
     connect(prevFrameButton, &QPushButton::clicked,
-            this, &ControlWidget::prevDataFrameRequest);    
+            this, &ControlWidget::prevDataFrameRequest);
 
     QWidget *navigationContainer = new QWidget;
     navigationContainer->setLayout(navigationButtonLayout);
     mainLayout->addWidget(navigationContainer);
+
+    QLabel *colorsListLabel = new QLabel(tr("Tracking Labels"), this);
+    mainLayout->addWidget(colorsListLabel);
+
+    trackingColors = new QListWidget(this);
+    mainLayout->addWidget(trackingColors);
 
     setLayout(mainLayout);
 
@@ -48,4 +60,16 @@ void ControlWidget::playPauseButtonPressed()
         m_playPauseButton->setText("Play");
         m_frameTimer->stop();
     }
+}
+
+void ControlWidget::addTrackingLabel(const std::string &label)
+{
+    QListWidgetItem *newLabel = new QListWidgetItem;
+    newLabel->setText(QString(label.c_str()));
+    QPixmap swatch(100, 100);
+    QColor color(colorNames[numTrackingLabels++]);
+    swatch.fill(color);
+    newLabel->setIcon(swatch);
+    trackingColors->addItem(newLabel);
+    emit labelColorAdded(label, color);
 }

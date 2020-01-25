@@ -15,6 +15,10 @@
 
 #include "dataframe3d.h"
 
+QT_BEGIN_NAMESPACE
+class QColor;
+QT_END_NAMESPACE
+
 class DataViewWidget3D : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -32,6 +36,7 @@ public slots:
     void setZRotation(int angle);
     void changeCurrentDataFrame(const DataFrame3D &frame);
     void setMaxDataPoints(const int maxDataPoints);
+    void addTrackingClass(const std::string &label, const QColor &color);
     //void cleanup();
 
 signals:
@@ -83,7 +88,7 @@ private:
     QMatrix4x4 boxModel;
 
     QVector<unsigned int> indices;
-    std::unordered_map<std::string, QVector4D> classColors;
+    std::unordered_map<std::string, QVector4D> trackingLabelColors;
 };
 
 #endif // DATAVIEWWIDGET3D_H

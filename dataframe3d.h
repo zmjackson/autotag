@@ -1,15 +1,8 @@
 #ifndef DATAFRAME3D_H
 #define DATAFRAME3D_H
 
-#include <vector>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <QVector3D>
 #include <QVector>
-
-#include <algorithm>
+#include <set>
 
 #include "tinyply.h"
 #include "datapoint.h"
@@ -29,7 +22,7 @@ public:
     int numDataPoints() const;
     const QVector<float> &pointData() const;
     const QVector<TrackedObject> &trackingData() const;
-    void loadJson(const QString fileName);
+    const std::set<std::string> loadJson(const QString fileName);
     void resizeTrackingData(int size);
 
 private:          

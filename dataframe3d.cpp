@@ -7,7 +7,6 @@
 #include <QVector4D>
 #include <QQuaternion>
 
-
 DataFrame3D::DataFrame3D()
     : m_timeStamp(0),
       m_numDataPoints(0) {}
@@ -140,7 +139,7 @@ const QVector<TrackedObject> &DataFrame3D::trackingData() const
     return m_trackingData;
 }
 
-void DataFrame3D::loadJson(const QString fileName)
+const std::set<std::string> DataFrame3D::loadJson(const QString fileName)
 {
     std::ifstream file(fileName.toStdString(), std::ifstream::binary);
     file.seekg(0, file.end);
@@ -162,6 +161,7 @@ void DataFrame3D::loadJson(const QString fileName)
 
     m_trackingData.resize(scene.size());
     int i = 0;
+    std::set<std::string> labels;
 
     for(Json::Value object : scene) {
         TrackedObject annotation;
@@ -203,9 +203,11 @@ void DataFrame3D::loadJson(const QString fileName)
         uint64_t timestamp = object["timestamp"].asUInt64();
         std::string labelClass = object["label_class"].asString();
 
-        m_trackingData[i] = {verts, position, rotation, uuid, timestamp, labelClass};
-        ++i;
+        labels.insert(labelClass);
+        m_trackingData[i++] = {verts, position, rotation, uuid, timestamp, labelClass};
     }
+
+    return labels;
 }
 
 void DataFrame3D::resizeTrackingData(int size)

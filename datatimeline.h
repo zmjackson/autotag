@@ -2,6 +2,7 @@
 #define DATATIMELINE_H
 
 #include <vector>
+#include <set>
 #include "dataframe3d.h"
 
 QT_BEGIN_NAMESPACE
@@ -23,6 +24,7 @@ public:
     int numFrames() const;
     void reset(const QStringList &fileList);
     int maxDataPoints() const;
+    std::set<std::string> trackingLabels;
 
 private:    
     std::vector<DataFrame3D> m_dataFrames;
