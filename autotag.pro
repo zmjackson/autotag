@@ -49,6 +49,5 @@ HEADERS += \
     json/json.h \
     trackedobject.h
 
-FORMS += \
-        mainwindow.ui \
+FORMS += \     
     form.ui
