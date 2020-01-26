@@ -48,7 +48,7 @@ MainWindow::MainWindow()
             this, &MainWindow::nextDataFrame);
     connect(controlWidget, &ControlWidget::prevDataFrameRequest,
             this, &MainWindow::prevDataFrame);
-    connect(controlWidget, &ControlWidget::labelColorAdded,
+    connect(controlWidget, &ControlWidget::labelColorChanged,
             dataViewWidget, &DataViewWidget3D::addTrackingClass);
 
     mainLayout->addWidget(controlWidget);

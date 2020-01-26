@@ -97,6 +97,7 @@ void DataViewWidget3D::addTrackingClass(const std::string &label, const QColor &
     float g = static_cast<float>(color.green()) / 255.0f;
     float b = static_cast<float>(color.blue()) / 255.0f;
     trackingLabelColors[label] = {r, g, b, 1.0f};
+    update();
 }
 
 void DataViewWidget3D::initializeGL()
@@ -268,7 +269,7 @@ void DataViewWidget3D::mouseMoveEvent(QMouseEvent *event)
 
 void DataViewWidget3D::wheelEvent(QWheelEvent *event)
 {
-    QPoint degrees = event->angleDelta() / 8;
+    QPoint degrees = event->angleDelta() / 24;
 
     if (m_fov >= 1.0f && m_fov <= 45.0f)
         m_fov -= degrees.y();

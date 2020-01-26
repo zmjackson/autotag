@@ -9,6 +9,9 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <QApplication>
+#include <QFile>
+#include <QTextStream>
 
 int main(int argc, char *argv[])
 {    
@@ -18,6 +21,10 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(glFormat);
 
     QApplication app(argc, argv);
+    QFile file("dark.qss");
+    file.open(QFile::ReadOnly | QFile::Text);
+    QTextStream stream(&file);
+    app.setStyleSheet(stream.readAll());
     MainWindow window;
     window.resize(window.sizeHint());
     window.show();

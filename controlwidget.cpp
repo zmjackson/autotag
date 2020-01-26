@@ -8,6 +8,7 @@
 #include <QListWidget>
 #include <QPixmap>
 #include <QColor>
+#include <QColorDialog>
 
 ControlWidget::ControlWidget(MainWindow *parent)
     : mainWindow(parent),
@@ -42,6 +43,9 @@ ControlWidget::ControlWidget(MainWindow *parent)
 
     setLayout(mainLayout);
 
+    connect(trackingColors, &QListWidget::itemDoubleClicked,
+            this, &ControlWidget::openColorDialog);
+
     m_frameTimer = new QTimer(this);
     connect(m_frameTimer, &QTimer::timeout,
             this, &ControlWidget::nextDataFrameRequest);
@@ -62,14 +66,26 @@ void ControlWidget::playPauseButtonPressed()
     }
 }
 
+void ControlWidget::openColorDialog(QListWidgetItem *item)
+{
+    QColor color = QColorDialog::getColor(Qt::yellow, this);
+    item->setIcon(getColorSwatch(color));
+    emit labelColorChanged(item->text().toStdString(), color);
+}
+
 void ControlWidget::addTrackingLabel(const std::string &label)
 {
     QListWidgetItem *newLabel = new QListWidgetItem;
     newLabel->setText(QString(label.c_str()));
-    QPixmap swatch(100, 100);
     QColor color(colorNames[numTrackingLabels++]);
-    swatch.fill(color);
-    newLabel->setIcon(swatch);
+    newLabel->setIcon(getColorSwatch(color));
     trackingColors->addItem(newLabel);
-    emit labelColorAdded(label, color);
+    emit labelColorChanged(label, color);
+}
+
+QPixmap ControlWidget::getColorSwatch(const QColor &color)
+{
+    QPixmap swatch(100, 100);
+    swatch.fill(color);
+    return swatch;
 }

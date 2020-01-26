@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,7 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += console
 
-INCLUDEPATH += /home/zachary/Projects/glm
+RESOURCES += breeze.qrc
 
 SOURCES += \
         main.cpp \
@@ -52,12 +52,3 @@ HEADERS += \
 FORMS += \
         mainwindow.ui \
     form.ui
-
-DISTFILES += \
-    example_cube-binary.ply \
-    example_cube-ascii.ply \
-    lidar_test.ply \
-    tracking.vert \
-    tracking.frag \
-    data.vert \
-    data.frag

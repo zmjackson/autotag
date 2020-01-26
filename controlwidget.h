@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStringList>
+#include <QPixmap>
 
 QT_BEGIN_NAMESPACE
 class QPushButton;
@@ -11,7 +12,7 @@ class QListWidget;
 class QString;
 class QColor;
 class QMouseEvent;
-class QColorDialog;
+class QListWidgetItem;
 QT_END_NAMESPACE
 
 class MainWindow;
@@ -27,13 +28,15 @@ public:
 signals:
     void nextDataFrameRequest();
     void prevDataFrameRequest();
-    void labelColorAdded(const std::string &label, const QColor &color);
+    void labelColorChanged(const std::string &label, const QColor &color);
 
 public slots:
     void playPauseButtonPressed();
-    void openColorDialog();
+    void openColorDialog(QListWidgetItem *item);
 
 private:
+    QPixmap getColorSwatch(const QColor &color);
+
     bool m_isPlaying;
     QPushButton *m_playPauseButton;
     QTimer *m_frameTimer;
@@ -41,7 +44,6 @@ private:
     QPushButton *nextFrameButton;
     QPushButton *prevFrameButton;
     QListWidget *trackingColors;
-    QColorDialog *colorPicker;
     QStringList colorNames;
     int numTrackingLabels;
 };
